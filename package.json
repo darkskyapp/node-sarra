@@ -1,0 +1,37 @@
+{
+  "name": "node-eccc",
+  "version": "0.0.1",
+  "description": "consume data from Environment and Climate Change Canada",
+  "license": "CC0",
+  "dependencies": {
+    "amqp": "^0.2.6",
+    "minhttp": "darkskyapp/minhttp#v0.0.3"
+  },
+  "devDependencies": {
+    "jshint": "*"
+  },
+  "jshintConfig": {
+    "curly": true,
+    "esnext": true,
+    "eqeqeq": true,
+    "forin": true,
+    "freeze": true,
+    "futurehostile": true,
+    "latedef": true,
+    "maxlen": 80,
+    "mocha": true,
+    "noarg": true,
+    "nocomma": true,
+    "node": true,
+    "nonbsp": true,
+    "nonew": true,
+    "sub": true,
+    "strict": true,
+    "undef": true,
+    "unused": "vars",
+    "varstmt": true
+  },
+  "scripts": {
+    "lint": "jshint . --exclude node_modules"
+  }
+}
