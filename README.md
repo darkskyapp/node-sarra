@@ -5,8 +5,8 @@ Consume data from Environment and Climate Change Canada as it is posted.
 Example
 -------
 ```javascript
-// The following will print the XML body of Canadian weather alerts as they
-// come up:
+// The following will print the URL of Canadian weather alerts files that get
+// posted, as they get posted:
 eccc.
   listen({amqp_route: "alerts.cap.#"}).
   on("error", err => console.warn(err.message)).
