@@ -4,7 +4,11 @@ const crypto = require("crypto");
 const EventEmitter = require("events");
 const url = require("url");
 const {name: APPLICATION, version: VERSION} = require("./package.json");
-const AMQP_ROUTE_PREFIX = "v02.post";
+const AMQP_HOST = "dd.weather.gc.ca";
+const AMQP_PORT = 5672;
+const AMQP_TOPIC_PREFIX = "v02.post";
+const AMQP_EXCHANGE = "xpublic";
+const AMQP_HEARTBEAT = 300;
 
 function random_string() {
   return crypto.pseudoRandomBytes(8).toString("hex");
@@ -12,27 +16,23 @@ function random_string() {
 
 function listen(options) {
   // Determine configurable parameters.
-  let amqp_broker = "amqp://anonymous:anonymous@dd.weather.gc.ca";
-  let amqp_exchange = "xpublic";
-  let amqp_route = "#";
+  let amqp_user = "anonymous";
+  let amqp_password = "anonymous";
+  let amqp_subtopic = "#";
   let amqp_queue = "q_anonymous_" + APPLICATION + "_" + random_string();
-  let amqp_heartbeat = 300;
   let amqp_durable = false;
   if(options) {
-    if(options.amqp_broker) {
-      amqp_broker = options.amqp_broker;
+    if(options.amqp_user) {
+      amqp_user = options.amqp_user;
     }
-    if(options.amqp_exchange) {
-      amqp_exchange = options.amqp_exchange;
+    if(options.amqp_password) {
+      amqp_password = options.amqp_password;
     }
-    if(options.amqp_route) {
-      amqp_route = options.amqp_route;
+    if(options.amqp_subtopic) {
+      amqp_subtopic = options.amqp_subtopic;
     }
     if(options.amqp_queue) {
       amqp_queue = options.amqp_queue;
-    }
-    if(options.amqp_heartbeat > 0) {
-      amqp_heartbeat = options.amqp_heartbeat;
     }
     if(options.amqp_durable) {
       amqp_durable = options.amqp_durable;
@@ -45,9 +45,12 @@ function listen(options) {
   // Create an AMQP connection.
   const connection = amqp.createConnection(
     {
-      url: amqp_broker,
-      heartbeat: amqp_heartbeat,
-      clientProperties: {applicationName: "node-eccc", version: VERSION},
+      host: AMQP_HOST,
+      port: AMQP_PORT,
+      login: amqp_user,
+      password: amqp_password,
+      heartbeat: AMQP_HEARTBEAT,
+      clientProperties: {applicationName: APPLICATION, version: VERSION},
     },
     {reconnectBackoffStrategy: "exponential"}
   );
@@ -57,17 +60,13 @@ function listen(options) {
 
   // When a connection becomes available (either because we are connecting for
   // the first time, or because we're reconnecting after some kind of network
-  // failure), create a queue and bind it to the requested exchange and route.
+  // failure), create a queue and bind it to the requested exchange and topic.
   connection.on("ready", () => {
-    emitter.emit("connect", amqp_broker);
-
     connection.queue(
       amqp_queue,
       {durable: amqp_durable, autoDelete: !amqp_durable},
       q => {
-        const route = AMQP_ROUTE_PREFIX + "." + amqp_route;
-        q.bind(amqp_exchange, route);
-        emitter.emit("subscribe", amqp_queue, amqp_exchange, route);
+        q.bind(AMQP_EXCHANGE, AMQP_TOPIC_PREFIX + "." + amqp_subtopic);
 
         // Subscribe to messages on the queue. If we get a message, parse it
         // and pass it along to the caller.
