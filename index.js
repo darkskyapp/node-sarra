@@ -2,10 +2,8 @@
 const amqp = require("amqp");
 const crypto = require("crypto");
 const EventEmitter = require("events");
-const minhttp = require("minhttp");
 const url = require("url");
 const {name: APPLICATION, version: VERSION} = require("./package.json");
-const USER_AGENT = APPLICATION + "/" + VERSION;
 const AMQP_ROUTE_PREFIX = "v02.post";
 
 function random_string() {
@@ -20,8 +18,6 @@ function listen(options) {
   let amqp_queue = "q_anonymous_" + APPLICATION + "_" + random_string();
   let amqp_heartbeat = 300;
   let amqp_durable = false;
-  let fetch_method = "body";
-  let fetch_timeout = 10000;
   if(options) {
     if(options.amqp_broker) {
       amqp_broker = options.amqp_broker;
@@ -40,12 +36,6 @@ function listen(options) {
     }
     if(options.amqp_durable) {
       amqp_durable = options.amqp_durable;
-    }
-    if(options.fetch_method === "stream" || options.fetch_method === "body") {
-      fetch_method = options.fetch_method;
-    }
-    if(options.fetch_timeout > 0) {
-      fetch_timeout = options.fetch_timeout;
     }
   }
 
@@ -79,9 +69,8 @@ function listen(options) {
         q.bind(amqp_exchange, route);
         emitter.emit("subscribe", amqp_queue, amqp_exchange, route);
 
-        // Subscribe to messages on the queue. If we get a message, attempt to
-        // parse it; if that works, then pass it along to the caller. Further,
-        // if the caller requested that we fetch data for them, then do so.
+        // Subscribe to messages on the queue. If we get a message, parse it
+        // and pass it along to the caller.
         // 
         // http://metpx.sourceforge.net/sr_post.7.html
         q.subscribe(message => {
@@ -96,21 +85,7 @@ function listen(options) {
             const path = !srcpath.endsWith("/")?
               srcpath:
               url.resolve(srcpath, relativepath);
-            emitter.emit("metadata", date, path);
-
-            if(fetch_method) {
-              const obj = url.parse(path);
-
-              if(obj.protocol === "http:" || obj.protocol === "https:") {
-                obj.method = "GET";
-                obj.timeout = fetch_timeout;
-                obj.headers = {"User-Agent": USER_AGENT};
-                minhttp[fetch_method](obj).then(
-                  res => emitter.emit("data", date, path, res),
-                  err => emitter.emit("error", err)
-                );
-              }
-            }
+            emitter.emit("message", date, path);
           }
         });
       }

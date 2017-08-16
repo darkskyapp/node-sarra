@@ -1,11 +1,10 @@
 {
   "name": "node-eccc",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "consume data from Environment and Climate Change Canada",
   "license": "CC0",
   "dependencies": {
-    "amqp": "^0.2.6",
-    "minhttp": "darkskyapp/minhttp#v0.0.3"
+    "amqp": "^0.2.6"
   },
   "devDependencies": {
     "jshint": "*"

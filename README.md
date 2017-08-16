@@ -10,7 +10,7 @@ Example
 eccc.
   listen({amqp_route: "alerts.cap.#"}).
   on("error", err => console.warn(err.message)).
-  on("data", (date, url, res) => console.log(res.body));
+  on("message", (date, url) => console.log(date, url));
 ```
 
 Usage
@@ -47,12 +47,6 @@ Usage
         used with care, since a prolonged outage may cause a queue to become
         extremely full and induce server problems at ECCC. (And, possibly, get
         our client banned. So be nice!)
-    *   `fetch_method` (defaults to `"body"`): may be set to `null`,
-        `"stream"`, or `"body"`. If `null`, then message payloads will not be
-        fetched from the data server (e.g. only the metadata will be emitted).
-        Otherwise, payloads served over the `http` and `https` protocols will
-        be fetched and emitted using the appropriate [minhttp][3] method.
-    *   `fetch_timeout` (defaults to `10000`): a timeout for fetching data.
 
     This function returns an EventEmitter that emits the following events:
 
@@ -62,18 +56,10 @@ Usage
     *   `emit("subscribe", queue, exchange, route)`: indicates that the library
         has successfully subscribed to the requested exchange and route using
         the requested queue.
-    *   `emit("metadata", date, url)`: indicates that an event has been
-        received (but not necessarily fetched). The metadata includes a Date
-        object (indicating when the event occurred) and a URL (indicating where
-        the object that has been updated is located).
-    *   `emit("data", date, url, res)`: indicates that an event has been
-        received and that the payload referenced in the event has been fetched.
-        The `date` and `url` are identical to those emitted in the `"metadata"`
-        event (above), and `res` is a ServerResponse object (as returned from
-        [minhttp][3]). If `fetch_method` is null, then this event will never be
-        emitted. If `fetch_method` is `"stream"`, then _you_ are responsible
-        for ensuring that the response stream is consumed; if you do not do so,
-        then memory leaks may result.
+    *   `emit("message", date, url)`: indicates that data has been updated on
+        the data server. The passed information includes a Date object
+        (indicating when the event occurred) and a URL (indicating where the
+        object that has been updated is located).
 
     The AMQP connection is robust, automatically reconnecting to the server on
     failure (though if the queue is not durable, messages sent in the meantime
@@ -81,4 +67,3 @@ Usage
 
 [1]: http://dd.weather.gc.ca/
 [2]: http://dd.weather.gc.ca/alerts/cap/
-[3]: https://github.com/darkskyapp/minhttp
