@@ -28,19 +28,20 @@ Usage
         interested in severe weather alerts (which can be found at
         [http://dd.weather.gc.ca/alerts/cap/][2]), then the subtopic
         `"alerts.cap.#"` is appropriate.
-    *   `amqp_queue` (defaults to `"q_anonymous_node-eccc_$RANDOM"`): the name
-        of the queue to subscribe to. In general, this should simply be a
-        unique string starting with `q_anonymous`; the default (which selects a
-        random name) should be adequate for the common case. However, you
-        should override the default to something nonrandom if you enable
-        `amqp_durable`, below.
+    *   `amqp_queue` (defaults to `"node-eccc_$RANDOM"`): the name of the queue
+        to subscribe to. In general, this should simply be a unique string; the
+        default (which selects a random name) should be adequate for the common
+        case. However, you should override the default to something nonrandom
+        if you enable `amqp_durable`, below.
+    *   `amqp_expires` (defaults to `3*3600*1000`): how long (in milliseconds)
+        the queue will survive after all clients have disconnected. (This is
+        only meaningful if `amqp_durable`, below, is set.)
     *   `amqp_durable` (defaults to `false`): notifies the AMQP server as to
         whether the queue should be durable (e.g. persist in case all clients
         disconnect). This is advisable in production settings where it is
         imperative that messages should not get lost; however, it should be
-        used with care, since a prolonged outage may cause a queue to become
-        extremely full and induce server problems at ECCC. (And, possibly, get
-        our client banned. So be nice!)
+        used with care (alongside `amqp_expires`, see above), since it is
+        impolite to leave discarded queues lying around the ECCC server.
 
     This function returns an EventEmitter that emits the following events:
 
@@ -52,7 +53,7 @@ Usage
 
     The AMQP connection is robust, automatically reconnecting to the server on
     failure (though if the queue is not durable, messages sent in the meantime
-    will be lost).
+    may be lost).
 
 [1]: http://dd.weather.gc.ca/
 [2]: http://dd.weather.gc.ca/alerts/cap/

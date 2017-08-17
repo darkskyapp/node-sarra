@@ -19,7 +19,8 @@ function listen(options) {
   let amqp_user = "anonymous";
   let amqp_password = "anonymous";
   let amqp_subtopic = "#";
-  let amqp_queue = "q_anonymous_" + APPLICATION + "_" + random_string();
+  let amqp_queue = APPLICATION + "_" + random_string();
+  let amqp_expires = 10800000; // three hours in milliseconds
   let amqp_durable = false;
   if(options) {
     if(options.amqp_user) {
@@ -33,6 +34,9 @@ function listen(options) {
     }
     if(options.amqp_queue) {
       amqp_queue = options.amqp_queue;
+    }
+    if(options.amqp_expires > 0) {
+      amqp_expires = options.amqp_expires;
     }
     if(options.amqp_durable) {
       amqp_durable = options.amqp_durable;
@@ -63,8 +67,12 @@ function listen(options) {
   // failure), create a queue and bind it to the requested exchange and topic.
   connection.on("ready", () => {
     connection.queue(
-      amqp_queue,
-      {durable: amqp_durable, autoDelete: !amqp_durable},
+      "q_" + amqp_user + "_" + amqp_queue,
+      {
+        durable: amqp_durable,
+        autoDelete: !amqp_durable,
+        arguments: {"x-expires": amqp_expires},
+      },
       q => {
         q.bind(AMQP_EXCHANGE, AMQP_TOPIC_PREFIX + "." + amqp_subtopic);
 
