@@ -79,7 +79,7 @@ function listen(options) {
             const date = new Date(
               timestamp.slice(0, 4) + "-" + timestamp.slice(4, 6) + "-" +
               timestamp.slice(6, 8) + "T" + timestamp.slice(8, 10) + ":" +
-              timestamp.slice(10, 12) + ":" + timestamp.slice(12, 14) + "Z"
+              timestamp.slice(10, 12) + ":" + timestamp.slice(12, 18) + "Z"
             );
             const path = !srcpath.endsWith("/")?
               srcpath:
