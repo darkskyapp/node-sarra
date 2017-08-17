@@ -1,6 +1,13 @@
-node-eccc
-=========
-Consume data from Environment and Climate Change Canada as it is posted.
+node-sarra
+==========
+Consume data from Environment and Climate Change Canada in real-time.
+
+This is a Node.JS client of [Sarracenia][1], the Government of Canada's push
+service for data. While this service is used across the Canadian government's
+services, this module is presently developed with the intention of consuming
+open weather data from Environment and Climate Change Canada. This module is
+presently rather embryonic, but is intended to grow to support more
+sophisticated use-cases and time goes on.
 
 Example
 -------
@@ -24,9 +31,9 @@ Usage
     *   `amqp_password` (defaults to `anonymous`): the AMQP server password.
     *   `amqp_subtopic` (defaults to `"#"`): the event subtopic, used to filter
         which events are listened for. This corresponds to the directory
-        hierarchy on [http://dd.weather.gc.ca/][1]: for example, if you are
+        hierarchy on [http://dd.weather.gc.ca/][2]: for example, if you are
         interested in severe weather alerts (which can be found at
-        [http://dd.weather.gc.ca/alerts/cap/][2]), then the subtopic
+        [http://dd.weather.gc.ca/alerts/cap/][3]), then the subtopic
         `"alerts.cap.#"` is appropriate.
     *   `amqp_queue` (defaults to `"node-eccc_$RANDOM"`): the name of the queue
         to subscribe to. In general, this should simply be a unique string; the
@@ -55,5 +62,6 @@ Usage
     failure (though if the queue is not durable, messages sent in the meantime
     may be lost).
 
-[1]: http://dd.weather.gc.ca/
-[2]: http://dd.weather.gc.ca/alerts/cap/
+[1]: http://metpx.sourceforge.net/sarra-e.html
+[2]: http://dd.weather.gc.ca/
+[3]: http://dd.weather.gc.ca/alerts/cap/

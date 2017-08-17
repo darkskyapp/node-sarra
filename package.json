@@ -1,6 +1,6 @@
 {
-  "name": "node-eccc",
-  "version": "0.0.5",
+  "name": "node-sarra",
+  "version": "0.0.6",
   "description": "consume data from Environment and Climate Change Canada",
   "license": "CC0",
   "dependencies": {
