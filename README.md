@@ -4,17 +4,18 @@ Consume data from Environment and Climate Change Canada in real-time.
 
 This is a Node.JS client of [Sarracenia][1], the Government of Canada's push
 service for data. While this service is used across the Canadian government's
-services, this module is presently developed with the intention of consuming
-open weather data from Environment and Climate Change Canada. This module is
-presently rather embryonic, but is intended to grow to support more
-sophisticated use-cases and time goes on.
+services, this module is presently developed with a focus on consuming open
+weather data from Environment and Climate Change Canada, and has settings tuned
+for that usage. However, as time goes on, the module is intended to support
+more sophisticated usage; if you have a demand for features not supported,
+please open an issue or a pull request.
 
 Example
 -------
 ```javascript
 // The following will print the URL of Canadian weather alerts files that get
 // posted, as they get posted:
-eccc.
+sarra.
   listen({amqp_subtopic: "alerts.cap.#"}).
   on("error", err => console.warn(err.message)).
   on("message", (date, url) => console.log(date, url));
@@ -22,7 +23,7 @@ eccc.
 
 Usage
 -----
-*   `eccc.listen(options)`: listen for new data appearing on the Environment
+*   `sarra.listen(options)`: listen for new data appearing on the Environment
     and Climate Change Canada data server. The passed `options` object defines
     configuration aspects of the listener, and may have any of the following
     properties defined:
@@ -35,20 +36,20 @@ Usage
         interested in severe weather alerts (which can be found at
         [http://dd.weather.gc.ca/alerts/cap/][3]), then the subtopic
         `"alerts.cap.#"` is appropriate.
-    *   `amqp_queue` (defaults to `"node-eccc_$RANDOM"`): the name of the queue
-        to subscribe to. In general, this should simply be a unique string; the
-        default (which selects a random name) should be adequate for the common
-        case. However, you should override the default to something nonrandom
-        if you enable `amqp_durable`, below.
+    *   `amqp_queue` (defaults to `null`): the queue to subscribe to on the
+        remote server. If set to `null`, then a randomly-named queue will be
+        created and will disappear once the process ends. This is good for
+        development and experimental applications. However, in production, more
+        durability may be desirable: in such cases, you should pass a unique
+        queue name; this will cause the queue to persist if all connections to
+        it close and if even across server restarts (but see `amqp_expires`,
+        below).
     *   `amqp_expires` (defaults to `3*3600*1000`): how long (in milliseconds)
-        the queue will survive after all clients have disconnected. (This is
-        only meaningful if `amqp_durable`, below, is set.)
-    *   `amqp_durable` (defaults to `false`): notifies the AMQP server as to
-        whether the queue should be durable (e.g. persist in case all clients
-        disconnect). This is advisable in production settings where it is
-        imperative that messages should not get lost; however, it should be
-        used with care (alongside `amqp_expires`, see above), since it is
-        impolite to leave discarded queues lying around the ECCC server.
+        the queue will survive after all clients have disconnected. (This
+        option is ignored if `amqp_queue` is `null`, and must be a positive
+        number. Even if you request it, this client does not allow a queue to
+        persist for longer than 24 hours, in order to prevent dead queues from
+        cluttering up the server.)
 
     This function returns an EventEmitter that emits the following events:
 
@@ -59,8 +60,8 @@ Usage
         object that has been updated is located).
 
     The AMQP connection is robust, automatically reconnecting to the server on
-    failure (though if the queue is not durable, messages sent in the meantime
-    may be lost).
+    failure. If the queue is not durable, or if the connection is interrupted
+    for longer than the expiration setting, then messages may be lost.
 
 [1]: http://metpx.sourceforge.net/sarra-e.html
 [2]: http://dd.weather.gc.ca/

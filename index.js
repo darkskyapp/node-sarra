@@ -19,9 +19,8 @@ function listen(options) {
   let amqp_user = "anonymous";
   let amqp_password = "anonymous";
   let amqp_subtopic = "#";
-  let amqp_queue = APPLICATION + "_" + random_string();
+  let amqp_queue = null;
   let amqp_expires = 10800000; // three hours in milliseconds
-  let amqp_durable = false;
   if(options) {
     if(options.amqp_user) {
       amqp_user = options.amqp_user;
@@ -37,10 +36,25 @@ function listen(options) {
     }
     if(options.amqp_expires > 0) {
       amqp_expires = options.amqp_expires;
+
+      // Do not allow queues to persist for longer than 24 hours, even if
+      // requested. We want to be polite customers!
+      if(amqp_expires > 86400000) {
+        amqp_expires = 86400000;
+      }
     }
-    if(options.amqp_durable) {
-      amqp_durable = options.amqp_durable;
-    }
+  }
+
+  // Determine queue options.
+  const amqp_queue_options = {};
+  if(amqp_queue === null) {
+    amqp_queue = APPLICATION + "_" + random_string();
+    amqp_queue_options.exclusive = true;
+  }
+  else {
+    amqp_queue_options.durable = true;
+    amqp_queue_options.autoDelete = false;
+    amqp_queue_options.arguments = {"x-expires": amqp_expires};
   }
 
   // Create the EventEmitter that we'll be returning.
@@ -68,11 +82,7 @@ function listen(options) {
   connection.on("ready", () => {
     connection.queue(
       "q_" + amqp_user + "_" + amqp_queue,
-      {
-        durable: amqp_durable,
-        autoDelete: !amqp_durable,
-        arguments: {"x-expires": amqp_expires},
-      },
+      amqp_queue_options,
       q => {
         q.bind(AMQP_EXCHANGE, AMQP_TOPIC_PREFIX + "." + amqp_subtopic);
 
