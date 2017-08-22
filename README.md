@@ -28,8 +28,10 @@ Usage
     configuration aspects of the listener, and may have any of the following
     properties defined:
 
-    *   `amqp_user` (defaults to `anonymous`): the AMQP server username.
-    *   `amqp_password` (defaults to `anonymous`): the AMQP server password.
+    *   `amqp_host` (defaults to `"dd.weather.gc.ca"`): the AMQP server host.
+    *   `amqp_port` (defaults to `5672`): the AMQP server port.
+    *   `amqp_user` (defaults to `"anonymous"`): the AMQP server username.
+    *   `amqp_password` (defaults to `"anonymous"`): the AMQP server password.
     *   `amqp_subtopic` (defaults to `"#"`): the event subtopic, used to filter
         which events are listened for. This corresponds to the directory
         hierarchy on [http://dd.weather.gc.ca/][2]: for example, if you are

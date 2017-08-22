@@ -4,8 +4,6 @@ const crypto = require("crypto");
 const EventEmitter = require("events");
 const url = require("url");
 const {name: APPLICATION, version: VERSION} = require("./package.json");
-const AMQP_HOST = "dd.weather.gc.ca";
-const AMQP_PORT = 5672;
 const AMQP_TOPIC_PREFIX = "v02.post";
 const AMQP_EXCHANGE = "xpublic";
 const AMQP_HEARTBEAT = 300;
@@ -16,12 +14,20 @@ function random_string() {
 
 function listen(options) {
   // Determine configurable parameters.
+  let amqp_host = "dd.weather.gc.ca";
+  let amqp_port = 5672;
   let amqp_user = "anonymous";
   let amqp_password = "anonymous";
   let amqp_subtopic = "#";
   let amqp_queue = null;
   let amqp_expires = 10800000; // three hours in milliseconds
   if(options) {
+    if(options.amqp_host) {
+      amqp_host = options.amqp_host;
+    }
+    if(options.amqp_port > 0) {
+      amqp_port = options.amqp_port;
+    }
     if(options.amqp_user) {
       amqp_user = options.amqp_user;
     }
@@ -63,8 +69,8 @@ function listen(options) {
   // Create an AMQP connection.
   const connection = amqp.createConnection(
     {
-      host: AMQP_HOST,
-      port: AMQP_PORT,
+      host: amqp_host,
+      port: amqp_port,
       login: amqp_user,
       password: amqp_password,
       heartbeat: AMQP_HEARTBEAT,
