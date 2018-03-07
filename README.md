@@ -65,6 +65,6 @@ Usage
     failure. If the queue is not durable, or if the connection is interrupted
     for longer than the expiration setting, then messages may be lost.
 
-[1]: http://metpx.sourceforge.net/sarra-e.html
+[1]: https://github.com/MetPX/sarracenia
 [2]: http://dd.weather.gc.ca/
 [3]: http://dd.weather.gc.ca/alerts/cap/
