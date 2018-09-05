@@ -105,9 +105,7 @@ function listen(options) {
               timestamp.slice(6, 8) + "T" + timestamp.slice(8, 10) + ":" +
               timestamp.slice(10, 12) + ":" + timestamp.slice(12, 18) + "Z"
             );
-            const path = !srcpath.endsWith("/")?
-              srcpath:
-              url.resolve(srcpath, relativepath);
+            const path = url.resolve(srcpath, relativepath);
             emitter.emit("message", date, path);
           }
         });
