@@ -15,7 +15,7 @@ function random_string() {
 function listen(options) {
   // Determine configurable parameters.
   let amqp_host = "dd.weather.gc.ca";
-  let amqp_port = 5672;
+  let amqp_port = 5671;
   let amqp_user = "anonymous";
   let amqp_password = "anonymous";
   let amqp_subtopic = "#";
@@ -75,6 +75,7 @@ function listen(options) {
       password: amqp_password,
       heartbeat: AMQP_HEARTBEAT,
       clientProperties: {applicationName: APPLICATION, version: VERSION},
+      ssl: {enabled: true},
     },
     {reconnectBackoffStrategy: "exponential"}
   );

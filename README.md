@@ -29,7 +29,7 @@ Usage
     properties defined:
 
     *   `amqp_host` (defaults to `"dd.weather.gc.ca"`): the AMQP server host.
-    *   `amqp_port` (defaults to `5672`): the AMQP server port.
+    *   `amqp_port` (defaults to `5671`): the AMQPS server port.
     *   `amqp_user` (defaults to `"anonymous"`): the AMQP server username.
     *   `amqp_password` (defaults to `"anonymous"`): the AMQP server password.
     *   `amqp_subtopic` (defaults to `"#"`): the event subtopic, used to filter
