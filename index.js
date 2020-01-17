@@ -129,11 +129,22 @@ function listen(options) {
             [pubTime, baseUrl, relPath] = data.split("\n", 1)[0].split(" ", 3);
           }
 
+          // v03 delimits the time section with a "T" character, but v02 does
+          // not. Look for it and skip the character if it's present.
+          let ti = 8;
+          if(pubTime[ti] === "T") {
+            ti++;
+          }
+
           // Convert pubTime into a Date object.
           const date = new Date(
-            pubTime.slice(0, 4) + "-" + pubTime.slice(4, 6) + "-" +
-            pubTime.slice(6, 8) + "T" + pubTime.slice(8, 10) + ":" +
-            pubTime.slice(10, 12) + ":" + pubTime.slice(12, 18) + "Z"
+            +pubTime.slice(0, 4),
+            pubTime.slice(4, 6) - 1,
+            +pubTime.slice(6, 8),
+            +pubTime.slice(ti + 0, ti + 2),
+            +pubTime.slice(ti + 2, ti + 4),
+            +pubTime.slice(ti + 4, ti + 6),
+            +pubTime.slice(ti + 7, ti + 10),
           );
 
           // Resolve baseUrl+relPath into a full URL.
