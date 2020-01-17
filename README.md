@@ -53,6 +53,18 @@ Usage
         persist for longer than 24 hours, in order to prevent dead queues from
         cluttering up the server.)
 
+    We also support some power-user options that you shouldn't need to touch
+    (but can if you are messing around):
+
+    *   `amqp_exchange` (defaults to `"xpublic"`): the AMQP server exchange to
+        bind to.
+    *   `amqp_topic_prefix` (defaults to `"v02.post"`): the event topic prefix
+        used to filter which events are listened for. This is prepended (along
+        with a `"."`) to `amqp_subtopic` in order to determine the amqp topic
+        bound to.
+    *   `v03`: if truthy, binds to the (HIGHLY EXPERIMENTAL, PROBABLY WON'T
+        WORK, DO NOT USE) `v03` feed.
+
     This function returns an EventEmitter that emits the following events:
 
     *   `emit("error", err)`: indicates that some kind of error has occurred.

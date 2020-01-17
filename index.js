@@ -4,8 +4,6 @@ const crypto = require("crypto");
 const EventEmitter = require("events");
 const url = require("url");
 const {name: APPLICATION, version: VERSION} = require("./package.json");
-const AMQP_TOPIC_PREFIX = "v02.post";
-const AMQP_EXCHANGE = "xpublic";
 const AMQP_HEARTBEAT = 300;
 
 function random_string() {
@@ -18,6 +16,8 @@ function listen(options) {
   let amqp_port = 5671;
   let amqp_user = "anonymous";
   let amqp_password = "anonymous";
+  let amqp_exchange = "xpublic";
+  let amqp_topic_prefix = "v02.post";
   let amqp_subtopic = "#";
   let amqp_queue = null;
   let amqp_expires = 10800000; // three hours in milliseconds
@@ -34,6 +34,12 @@ function listen(options) {
     if(options.amqp_password) {
       amqp_password = options.amqp_password;
     }
+    if(options.amqp_exchange) {
+      amqp_exchange = options.amqp_exchange;
+    }
+    if(options.amqp_topic_prefix) {
+      amqp_topic_prefix = options.amqp_topic_prefix;
+    }
     if(options.amqp_subtopic) {
       amqp_subtopic = options.amqp_subtopic;
     }
@@ -48,6 +54,11 @@ function listen(options) {
       if(amqp_expires > 86400000) {
         amqp_expires = 86400000;
       }
+    }
+    if(options.v03) {
+      amqp_host = "hpfx.collab.science.gc.ca";
+      amqp_exchange = "xs_pas037_wmosketch_public";
+      amqp_topic_prefix = "v03.post";
     }
   }
 
@@ -91,24 +102,45 @@ function listen(options) {
       "q_" + amqp_user + "_" + amqp_queue,
       amqp_queue_options,
       q => {
-        q.bind(AMQP_EXCHANGE, AMQP_TOPIC_PREFIX + "." + amqp_subtopic);
+        q.bind(amqp_exchange, amqp_topic_prefix + "." + amqp_subtopic);
 
         // Subscribe to messages on the queue. If we get a message, parse it
         // and pass it along to the caller.
         // 
         // http://metpx.sourceforge.net/sr_post.7.html
         q.subscribe(message => {
-          if(message.contentType === "text/plain") {
-            const [timestamp, srcpath, relativepath] = message.data.
-              toString("utf8").split("\n", 1)[0].split(" ", 3);
-            const date = new Date(
-              timestamp.slice(0, 4) + "-" + timestamp.slice(4, 6) + "-" +
-              timestamp.slice(6, 8) + "T" + timestamp.slice(8, 10) + ":" +
-              timestamp.slice(10, 12) + ":" + timestamp.slice(12, 18) + "Z"
-            );
-            const path = url.resolve(srcpath, relativepath);
-            emitter.emit("message", date, path);
+          // Parse the posted message from the server.
+          const data = message.data.toString("utf8");
+          let pubTime;
+          let baseUrl;
+          let relPath;
+
+          // If the message starts with a "{", then we assume the payload is a
+          // v03 JSON payload.
+          if(data.startsWith("{")) {
+            const obj = JSON.parse(data);
+            pubTime = obj.pubTime;
+            baseUrl = obj.baseUrl;
+            relPath = obj.relPath;
           }
+
+          // Otherwise, we assume it's a v02 text payload.
+          else {
+            [pubTime, baseUrl, relPath] = data.split("\n", 1)[0].split(" ", 3);
+          }
+
+          // Convert pubTime into a Date object.
+          const date = new Date(
+            pubTime.slice(0, 4) + "-" + pubTime.slice(4, 6) + "-" +
+            pubTime.slice(6, 8) + "T" + pubTime.slice(8, 10) + ":" +
+            pubTime.slice(10, 12) + ":" + pubTime.slice(12, 18) + "Z"
+          );
+
+          // Resolve baseUrl+relPath into a full URL.
+          const path = url.resolve(baseUrl, relPath);
+
+          // Emit the Date and URL.
+          emitter.emit("message", date, path);
         });
       }
     );
