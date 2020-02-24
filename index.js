@@ -21,6 +21,7 @@ function listen(options) {
   let amqp_subtopic = "#";
   let amqp_queue = null;
   let amqp_expires = 10800000; // three hours in milliseconds
+  let amqp_reconnect_limit_ms = 120000;
   if(options) {
     if(options.amqp_host) {
       amqp_host = options.amqp_host;
@@ -48,6 +49,9 @@ function listen(options) {
       if(amqp_expires > 86400000) {
         amqp_expires = 86400000;
       }
+    }
+    if(options.amqp_reconnect_limit_ms) {
+      amqp_reconnect_limit_ms = options.amqp_reconnect_limit_ms;
     }
   }
 
@@ -77,7 +81,10 @@ function listen(options) {
       clientProperties: {applicationName: APPLICATION, version: VERSION},
       ssl: {enabled: true},
     },
-    {reconnectBackoffStrategy: "exponential"}
+    {
+      reconnectBackoffStrategy: "exponential",
+      reconnectExponentialLimit: amqp_reconnect_limit_ms,
+    }
   );
 
   // If there's an error on the connection, pass it along to the consumer.
